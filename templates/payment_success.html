@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="text-success">Payment Successful!</h2>
+<p>Thank you for your purchase. Your medicines will be delivered to your address shortly.</p>
+<a href="{{ url_for('catalog') }}" class="btn btn-primary mt-3">Back to Shop</a>
+{% endblock %}
