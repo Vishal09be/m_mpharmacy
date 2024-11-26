@@ -1,6 +1,7 @@
 version: 0.2
 phases:
     install:
+         commands:
             - pip install pylint
         runtime-versions:
             python: 3.12
