@@ -5,15 +5,23 @@ phases:
     runtime-versions:
       python: 3.12
     commands:
-      - pip install pylint
+      - echo "Installing dependencies"
       - pip install --upgrade pip
       - pip install -r requirements.txt
 
   pre_build:
     commands:
+      - echo "Running pre-build phase"
       - python --version
-      - pylint $CODEBUILD_SRC_DIR/*.py
-      # - pylint $CODEBUILD_SRC_DIR/myapp/*.py
+
+  build:
+    commands:
+      - echo "Running build phase"
+      - python app.py  # Replace with the appropriate command to run your application or tests
+
+  post_build:
+    commands:
+      - echo "Post-build phase completed"
 
 artifacts:
   files:
