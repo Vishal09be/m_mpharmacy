@@ -4,11 +4,11 @@ FROM python:3.10-slim
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy only the necessary files first (to take advantage of Docker caching)
+# Copy the dependencies and install them
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the project files into the container (including home.html)
+# Copy the project files (including home.html) into the container
 COPY . .
 
 # Expose Flask's default port
