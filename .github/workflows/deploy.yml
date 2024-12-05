@@ -43,20 +43,20 @@ jobs:
         username: ${{ secrets.EC2_USER }}  # The EC2 username (typically 'ec2-user' for Amazon Linux)
         key: ${{ secrets.EC2_PRIVATE_KEY }}  # The private key to SSH into your EC2 instance
         script: |
-          # Check if port 5000 is in use, and if so, stop and remove the existing container
-          echo "Checking if port 5000 is in use..."
-          if [ $(lsof -i :5000) ]; then
-            echo "Port 5000 is in use. Stopping and removing the existing container..."
-            # Forcefully stop and remove the container using port 5000
-            docker ps -q -f "name=flask-app" | xargs -I {} docker stop {} && docker rm {}
+          # Check if the container exists, and if so, stop and remove it
+          echo "Checking for existing container 'm_mpharmacy'..."
+          if [ $(docker ps -aq -f name=m_mpharmacy) ]; then
+            echo "Stopping and removing existing container using port 5000..."
+            docker stop m_mpharmacy || true
+            docker rm m_mpharmacy || true
           fi
 
           # Run the new container on port 5000 (or fallback to port 5001 if 5000 is still in use)
           echo "Running the new Flask application..."
           if [ $(lsof -i :5000) ]; then
-            echo "Port 5000 is still in use. Running the container on port 5001..."
-            docker run -d --name flask-app -p 5001:5000 vishal09be/m_mpharmacy:latest
+            echo "Port 5000 is still in use. Trying to run on port 5001..."
+            docker run -d --name m_mpharmacy -p 5001:5000 vishal09be/m_mpharmacy:latest
           else
             echo "Port 5000 is free. Running the container on port 5000..."
-            docker run -d --name flask-app -p 5000:5000 vishal09be/m_mpharmacy:latest
+            docker run -d --name m_mpharmacy -p 5000:5000 vishal09be/m_mpharmacy:latest
           fi
