@@ -46,7 +46,7 @@ jobs:
           # Check if the container exists, and if so, stop and remove it
           echo "Checking for existing container 'm_mpharmacy'..."
           if [ $(docker ps -aq -f name=m_mpharmacy) ]; then
-            echo "Stopping and removing existing container using port 5000..."
+            echo "Stopping and removing existing container..."
             docker stop m_mpharmacy || true
             docker rm m_mpharmacy || true
           fi
