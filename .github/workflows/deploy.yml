@@ -1,62 +1,54 @@
-name: Docker Build and Deploy to EC2
+name: CI/CD Pipeline for Flask Application
 
 on:
   push:
     branches:
-      - main  # Change this to the branch you want to trigger the workflow on
+      - main  # Trigger the workflow when changes are pushed to the main branch
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest  # GitHub Actions runner environment (Ubuntu-based)
+    runs-on: ubuntu-latest  # Run the job on an Ubuntu-based runner
 
     steps:
-    # Step 1: Checkout code from GitHub
-    - name: Checkout repository code
+    # Step 1: Checkout the code
+    - name: Checkout code
       uses: actions/checkout@v2
 
-    # Step 2: Set up Docker Buildx (for multi-platform builds, if necessary)
+    # Step 2: Set up Docker Buildx (for multi-platform builds if needed)
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    # Step 3: Log in to Docker Hub (using Docker credentials stored in GitHub Secrets)
+    # Step 3: Log in to Docker Hub
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}  # Store your Docker Hub username in GitHub Secrets
-        password: ${{ secrets.DOCKER_PASSWORD }}  # Store your Docker Hub password or PAT in GitHub Secrets
+        username: ${{ secrets.DOCKER_USERNAME }}  # Docker Hub username from secrets
+        password: ${{ secrets.DOCKER_PASSWORD }}  # Docker Hub password or PAT from secrets
 
-    # Step 4: Build the Docker image using the Dockerfile
+    # Step 4: Build Docker image with no cache
     - name: Build Docker image
       run: |
-        docker build -t vishal09be/m_mpharmacy:latest .
+        docker build --no-cache -t vishal09be/m_mpharmacy:latest .
 
     # Step 5: Push the Docker image to Docker Hub
     - name: Push Docker image to Docker Hub
       run: |
         docker push vishal09be/m_mpharmacy:latest
 
-    # Step 6: Deploy to EC2 instance
+    # Step 6: Deploy to EC2 instance using SSH
     - name: Deploy to EC2 instance
       uses: appleboy/ssh-action@v0.1.5
       with:
-        host: ${{ secrets.EC2_IP }}  # The public IP address of your EC2 instance
-        username: ${{ secrets.EC2_USER }}  # The EC2 username (typically 'ec2-user' for Amazon Linux)
-        key: ${{ secrets.EC2_PRIVATE_KEY }}  # The private key to SSH into your EC2 instance
+        host: ${{ secrets.EC2_IP }}  # EC2 public IP address from secrets
+        username: ${{ secrets.EC2_USER }}  # EC2 username (typically 'ec2-user' for Amazon Linux)
+        key: ${{ secrets.EC2_PRIVATE_KEY }}  # EC2 private key (stored as GitHub Secret)
         script: |
-          # Check if the container exists, and if so, stop and remove it
-          echo "Checking for existing container 'm_mpharmacy'..."
-          if [ $(docker ps -aq -f name=m_mpharmacy) ]; then
-            echo "Stopping and removing existing container..."
-            docker stop m_mpharmacy || true
-            docker rm m_mpharmacy || true
-          fi
+          # Stop and remove the old container if it exists
+          docker stop m_mpharmacy || true
+          docker rm m_mpharmacy || true
 
-          # Run the new container on port 5000 (or fallback to port 5001 if 5000 is still in use)
-          echo "Running the new Flask application..."
-          if [ $(lsof -i :5000) ]; then
-            echo "Port 5000 is still in use. Trying to run on port 5001..."
-            docker run -d --name m_mpharmacy -p 5001:5000 vishal09be/m_mpharmacy:latest
-          else
-            echo "Port 5000 is free. Running the container on port 5000..."
-            docker run -d --name m_mpharmacy -p 5000:5000 vishal09be/m_mpharmacy:latest
-          fi
+          # Pull the latest Docker image from Docker Hub
+          docker pull vishal09be/m_mpharmacy:latest
+
+          # Run the new container on port 5000
+          docker run -d --name m_mpharmacy -p 5000:5000 vishal09be/m_mpharmacy:latest
