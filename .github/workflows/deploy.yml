@@ -3,14 +3,14 @@ name: Docker Build and Deploy to EC2
 on:
   push:
     branches:
-      - main  # This triggers the workflow on the 'main' branch push
+      - main  # Change this to the branch you want to trigger the workflow on
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest  # This is the environment that will run the job
+    runs-on: ubuntu-latest  # GitHub Actions runner environment (Ubuntu-based)
 
     steps:
-    # Step 1: Checkout the repository code
+    # Step 1: Checkout code from GitHub
     - name: Checkout repository code
       uses: actions/checkout@v2
 
@@ -18,7 +18,7 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    # Step 3: Log in to Docker Hub (use Docker credentials stored in GitHub Secrets)
+    # Step 3: Log in to Docker Hub (using Docker credentials stored in GitHub Secrets)
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
       with:
@@ -43,20 +43,20 @@ jobs:
         username: ${{ secrets.EC2_USER }}  # The EC2 username (typically 'ec2-user' for Amazon Linux)
         key: ${{ secrets.EC2_PRIVATE_KEY }}  # The private key to SSH into your EC2 instance
         script: |
-          # Stop and remove the existing container if it exists (port 5000 conflict fix)
-          echo "Checking for existing container using port 5000..."
-          if [ $(docker ps -aq -f name=flask-app) ]; then
-            echo "Stopping and removing existing container using port 5000..."
-            docker stop flask-app || true
-            docker rm flask-app || true
+          # Check if port 5000 is in use, and if so, stop and remove the existing container
+          echo "Checking if port 5000 is in use..."
+          if [ $(lsof -i :5000) ]; then
+            echo "Port 5000 is in use. Stopping and removing the existing container..."
+            # Forcefully stop and remove the container using port 5000
+            docker ps -q -f "name=flask-app" | xargs -I {} docker stop {} && docker rm {}
           fi
 
-          # Option 1: Run the new container on port 5000
-          echo "Running the new Flask application on port 5000..."
-          docker run -d --name flask-app -p 5000:5000 vishal09be/m_mpharmacy:latest
-
-          # Option 2: If port 5000 is still occupied, fall back to a different port (5001)
+          # Run the new container on port 5000 (or fallback to port 5001 if 5000 is still in use)
+          echo "Running the new Flask application..."
           if [ $(lsof -i :5000) ]; then
-            echo "Port 5000 is already in use. Trying to run on port 5001..."
+            echo "Port 5000 is still in use. Running the container on port 5001..."
             docker run -d --name flask-app -p 5001:5000 vishal09be/m_mpharmacy:latest
+          else
+            echo "Port 5000 is free. Running the container on port 5000..."
+            docker run -d --name flask-app -p 5000:5000 vishal09be/m_mpharmacy:latest
           fi
