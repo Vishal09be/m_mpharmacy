@@ -3,26 +3,25 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.12
+      docker: 18  # Ensure Docker is available
     commands:
-      - echo "Installing dependencies"
-      - pip install --upgrade pip
-      - pip install -r requirements.txt
-
-  pre_build:
-    commands:
-      - echo "Running pre-build phase"
-      - python --version
+      - echo Installing dependencies...
+      - docker --version  # Optional: Verifies Docker installation
 
   build:
     commands:
-      - echo "Running build phase"
-      - python app.py  # Replace with the appropriate command to run your application or tests
+      - echo Building the Docker image...
+      - docker build -t $DOCKER_IMAGE_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION .  # Build the Docker image from Dockerfile
+      - echo Docker image built successfully
 
   post_build:
     commands:
-      - echo "Post-build phase completed"
+      - echo "Preparing to deploy to Elastic Beanstalk..."
+      - docker tag $DOCKER_IMAGE_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION $DOCKER_HUB_USERNAME/$DOCKER_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION  # Tagging the image
+      - docker push $DOCKER_HUB_USERNAME/$DOCKER_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION  # Push the image to Docker Hub
+      - echo "Docker image pushed successfully to Docker Hub."
 
 artifacts:
   files:
     - '**/*'
+  discard-paths: yes
