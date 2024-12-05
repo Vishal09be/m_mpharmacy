@@ -3,11 +3,11 @@ name: Docker Build and Deploy to EC2
 on:
   push:
     branches:
-      - main  # The branch to trigger the build and deploy workflow. Change if you are using another branch.
+      - main  # Adjust to the branch you want to trigger the workflow on
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest  # GitHub runner environment (Ubuntu-based)
+    runs-on: ubuntu-latest  # Use GitHub-hosted runners (Ubuntu-based)
 
     steps:
     # Step 1: Checkout code from GitHub
@@ -18,14 +18,14 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    # Step 3: Log in to Docker Hub (replace with your Docker Hub credentials)
+    # Step 3: Log in to Docker Hub (using Docker Hub credentials stored in secrets)
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}  # Store your Docker Hub username in GitHub Secrets
-        password: ${{ secrets.DOCKER_PASSWORD }}  # Store your Docker Hub password or Personal Access Token (PAT) in GitHub Secrets
+        password: ${{ secrets.DOCKER_PASSWORD }}  # Store your Docker Hub password or PAT in GitHub Secrets
 
-    # Step 4: Build Docker image using Dockerfile
+    # Step 4: Build Docker image using the Dockerfile
     - name: Build Docker image
       run: |
         docker build -t vishal09be/m_mpharmacy:latest .
@@ -40,14 +40,16 @@ jobs:
       uses: appleboy/ssh-action@v0.1.5
       with:
         host: ${{ secrets.EC2_IP }}  # The public IP address of your EC2 instance (stored in GitHub Secrets)
-        username: ${{ secrets.EC2_USER }}  # EC2 username (typically 'ec2-user' for Amazon Linux)
-        key: ${{ secrets.EC2_PRIVATE_KEY }}  # EC2 private key (stored as a GitHub Secret)
+        username: ${{ secrets.EC2_USER }}  # EC2 username (usually 'ec2-user' for Amazon Linux)
+        key: ${{ secrets.EC2_PRIVATE_KEY }}  # The EC2 private key (stored as GitHub Secret)
         script: |
-          # Check if the container exists and remove the old one
+          # Check if the container is already using port 5000, and if so, stop and remove it
           if [ $(docker ps -aq -f name=flask-app) ]; then
-            docker stop flask-app
-            docker rm flask-app
+            echo "Stopping and removing existing container using port 5000..."
+            docker stop flask-app || true
+            docker rm flask-app || true
           fi
 
-          # Run the new container on port 5000 (or port 5001 if you prefer)
-          docker run -d --name flask-app -p 5001:5000 vishal09be/m_mpharmacy:latest
+          # Ensure port 5000 is available and run the new container
+          echo "Running the new Flask application on port 5000..."
+          docker run -d --name flask-app -p 5000:5000 vishal09be/m_mpharmacy:latest
