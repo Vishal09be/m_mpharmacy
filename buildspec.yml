@@ -1,0 +1,28 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+    commands:
+      - echo "Installing dependencies"
+      - pip install --upgrade pip
+      - pip install -r requirements.txt
+
+  pre_build:
+    commands:
+      - echo "Running pre-build phase"
+      - python --version
+
+  build:
+    commands:
+      - echo "Running build phase"
+      - python app.py  # Replace with the appropriate command to run your application or tests
+
+  post_build:
+    commands:
+      - echo "Post-build phase completed"
+
+artifacts:
+  files:
+    - '**/*'
