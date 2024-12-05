@@ -3,25 +3,17 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      docker: 18  # Ensure Docker is available
+      docker: 18
+  pre_build:
     commands:
-      - echo Installing dependencies...
-      - docker --version  # Optional: Verifies Docker installation
-
+      - echo Logging in to Docker Hub...
+      - docker login -u $vishal09be -p $azspn0705c
   build:
     commands:
       - echo Building the Docker image...
-      - docker build -t $DOCKER_IMAGE_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION .  # Build the Docker image from Dockerfile
-      - echo Docker image built successfully
-
+      - docker build -t vishal09be/m_mpharmacy:$CODEBUILD_RESOLVED_SOURCE_VERSION .
+      - docker tag vishal09be/m_mpharmacy:$CODEBUILD_RESOLVED_SOURCE_VERSION vishal09be/m_mpharmacy:latest
   post_build:
     commands:
-      - echo "Preparing to deploy to Elastic Beanstalk..."
-      - docker tag $DOCKER_IMAGE_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION $DOCKER_HUB_USERNAME/$DOCKER_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION  # Tagging the image
-      - docker push $DOCKER_HUB_USERNAME/$DOCKER_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION  # Push the image to Docker Hub
-      - echo "Docker image pushed successfully to Docker Hub."
-
-artifacts:
-  files:
-    - '**/*'
-  discard-paths: yes
+      - echo Pushing Docker image to Docker Hub...
+      - docker push vishal09be/m_mpharmacy:latest
