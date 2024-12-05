@@ -3,34 +3,34 @@ name: Docker Build and Deploy to EC2
 on:
   push:
     branches:
-      - main  # Adjust to the branch you want to trigger the workflow on
+      - main  # This triggers the workflow on the 'main' branch push
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest  # Use GitHub-hosted runners (Ubuntu-based)
+    runs-on: ubuntu-latest  # This is the environment that will run the job
 
     steps:
-    # Step 1: Checkout code from GitHub
+    # Step 1: Checkout the repository code
     - name: Checkout repository code
       uses: actions/checkout@v2
 
-    # Step 2: Set up Docker Buildx (for multi-platform builds)
+    # Step 2: Set up Docker Buildx (for multi-platform builds, if necessary)
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    # Step 3: Log in to Docker Hub (using Docker Hub credentials stored in secrets)
+    # Step 3: Log in to Docker Hub (use Docker credentials stored in GitHub Secrets)
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}  # Store your Docker Hub username in GitHub Secrets
         password: ${{ secrets.DOCKER_PASSWORD }}  # Store your Docker Hub password or PAT in GitHub Secrets
 
-    # Step 4: Build Docker image using the Dockerfile
+    # Step 4: Build the Docker image using the Dockerfile
     - name: Build Docker image
       run: |
         docker build -t vishal09be/m_mpharmacy:latest .
 
-    # Step 5: Push Docker image to Docker Hub
+    # Step 5: Push the Docker image to Docker Hub
     - name: Push Docker image to Docker Hub
       run: |
         docker push vishal09be/m_mpharmacy:latest
@@ -39,17 +39,24 @@ jobs:
     - name: Deploy to EC2 instance
       uses: appleboy/ssh-action@v0.1.5
       with:
-        host: ${{ secrets.EC2_IP }}  # The public IP address of your EC2 instance (stored in GitHub Secrets)
-        username: ${{ secrets.EC2_USER }}  # EC2 username (usually 'ec2-user' for Amazon Linux)
-        key: ${{ secrets.EC2_PRIVATE_KEY }}  # The EC2 private key (stored as GitHub Secret)
+        host: ${{ secrets.EC2_IP }}  # The public IP address of your EC2 instance
+        username: ${{ secrets.EC2_USER }}  # The EC2 username (typically 'ec2-user' for Amazon Linux)
+        key: ${{ secrets.EC2_PRIVATE_KEY }}  # The private key to SSH into your EC2 instance
         script: |
-          # Check if the container is already using port 5000, and if so, stop and remove it
+          # Stop and remove the existing container if it exists (port 5000 conflict fix)
+          echo "Checking for existing container using port 5000..."
           if [ $(docker ps -aq -f name=flask-app) ]; then
             echo "Stopping and removing existing container using port 5000..."
             docker stop flask-app || true
             docker rm flask-app || true
           fi
 
-          # Ensure port 5000 is available and run the new container
+          # Option 1: Run the new container on port 5000
           echo "Running the new Flask application on port 5000..."
           docker run -d --name flask-app -p 5000:5000 vishal09be/m_mpharmacy:latest
+
+          # Option 2: If port 5000 is still occupied, fall back to a different port (5001)
+          if [ $(lsof -i :5000) ]; then
+            echo "Port 5000 is already in use. Trying to run on port 5001..."
+            docker run -d --name flask-app -p 5001:5000 vishal09be/m_mpharmacy:latest
+          fi
