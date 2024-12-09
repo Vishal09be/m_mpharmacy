@@ -49,6 +49,8 @@ def login():
         else:
             flash("Login unsuccessful. Check email and password", "danger")
     return render_template("login.html", form=form)
+
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     form = RegistrationForm()
@@ -86,6 +88,8 @@ def catalog():
         return redirect(url_for("catalog"))
     products = Product.query.all()
     return render_template("catalog.html", products=products, form=form)
+
+
 @app.route("/update_medicine/<int:product_id>", methods=["GET", "POST"])
 @login_required
 def update_medicine(product_id):
@@ -166,6 +170,7 @@ def cart():
             flash("Removed an invalid item from your cart.", "warning")
 
     return render_template("cart.html", cart_items=valid_cart_items, total=total)
+
 
 @app.route("/remove_from_cart/<int:item_id>", methods=["POST"])
 @login_required
