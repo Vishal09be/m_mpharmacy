@@ -129,7 +129,7 @@ def add_to_cart(product_id):
         flash("This product is out of stock.", "warning")
         return redirect(url_for("catalog"))
 
- cart_item = CartItem.query.filter_by(
+    cart_item = CartItem.query.filter_by(
         user_id=current_user.id, product_id=product_id
     ).first()
     if cart_item:
