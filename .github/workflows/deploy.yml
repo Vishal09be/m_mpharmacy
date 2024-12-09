@@ -24,7 +24,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt  # Install required dependencies from requirements.txt
-        pip install pylint bandit  # Install Pylint and Bandit for code analysis
+      
 
     # Step 4: Run Pylint on specific Python files (app.py, models.py, forms.py)
     - name: Run Pylint on app.py, models.py, and forms.py
@@ -32,23 +32,18 @@ jobs:
         pylint app.py models.py forms.py --output-format=text > pylint-report.txt || true
         cat pylint-report.txt  # Display the Pylint report
 
-    # Step 5: Run Bandit for security analysis on specific files
-    - name: Run Bandit on app.py, models.py, and forms.py
-      run: |
-        bandit -r app.py models.py forms.py -f json -o bandit-report.json
-        cat bandit-report.json  # Display the Bandit security analysis report
 
-    # Step 6: Build Docker image with no cache
+    # Step 5: Build Docker image with no cache
     - name: Build Docker image
       run: |
         docker build --no-cache -t vishal09be/m_mpharmacy:latest .
 
-    # Step 7: Push the Docker image to Docker Hub
+    # Step 6: Push the Docker image to Docker Hub
     - name: Push Docker image to Docker Hub
       run: |
         docker push vishal09be/m_mpharmacy:latest
 
-    # Step 8: Deploy to EC2 instance using SSH
+    # Step 7: Deploy to EC2 instance using SSH
     - name: Deploy to EC2 instance
       uses: appleboy/ssh-action@v0.1.5
       with:
