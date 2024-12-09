@@ -25,17 +25,34 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}  # Docker Hub username from secrets
         password: ${{ secrets.DOCKER_PASSWORD }}  # Docker Hub password or PAT from secrets
 
-    # Step 4: Build Docker image with no cache
+    # Step 4: Install Pylint and Bandit
+    - name: Install Pylint and Bandit
+      run: |
+        pip install pylint bandit  # Install Pylint for code quality checks and Bandit for security analysis
+
+    # Step 5: Run Pylint on specific Python files (app.py, models.py, forms.py)
+    - name: Run Pylint on app.py, models.py, and forms.py
+      run: |
+        pylint app.py models.py forms.py --output-format=text > pylint-report.txt || true
+        cat pylint-report.txt  # Display the Pylint report
+
+    # Step 6: Run Bandit for security analysis on specific files
+    - name: Run Bandit on app.py, models.py, and forms.py
+      run: |
+        bandit -r app.py models.py forms.py -f json -o bandit-report.json
+        cat bandit-report.json  # Display the Bandit security analysis report
+
+    # Step 7: Build Docker image with no cache
     - name: Build Docker image
       run: |
         docker build --no-cache -t vishal09be/m_mpharmacy:latest .
 
-    # Step 5: Push the Docker image to Docker Hub
+    # Step 8: Push the Docker image to Docker Hub
     - name: Push Docker image to Docker Hub
       run: |
         docker push vishal09be/m_mpharmacy:latest
 
-    # Step 6: Deploy to EC2 instance using SSH
+    # Step 9: Deploy to EC2 instance using SSH
     - name: Deploy to EC2 instance
       uses: appleboy/ssh-action@v0.1.5
       with:
