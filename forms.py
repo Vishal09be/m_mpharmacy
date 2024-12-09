@@ -3,11 +3,6 @@ from wtforms import StringField, PasswordField, SubmitField, FloatField, Integer
 from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
 from models import User
 
-"""
-This module contains the form classes used in the pharmacy website.
-These include forms for registration, login, and product management.
-"""
-
 class RegistrationForm(FlaskForm):
     """
     Form for user registration, including fields for email, password, and password confirmation.
