@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4">Medicines</h2>
+<div class="row">
+    {% for product in products %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">Price:  €{{ product.price }}</p>
+                    <p class="card-text">Stock: {{ product.stock }}</p>
+                    <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                        {% if product.stock > 0 %}
+                            <button type="submit" class="btn btn-primary w-100">Add to Cart</button>
+                        {% else %}
+                            <button type="button" class="btn btn-secondary w-100" disabled>Out of Stock</button>
+                        {% endif %}
+                    </form>
+                    <form method="POST" action="{{ url_for('delete_medicine', product_id=product.id) }}" class="mt-2">
+                        <button type="submit" class="btn btn-danger w-100">Delete</button>
+                    </form>
+                    <a href="{{ url_for('update_medicine', product_id=product.id) }}" class="btn btn-warning w-100 mt-2">Edit</a> <!-- Edit button -->
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<h4 class="mt-5">Add New Medicine</h4>
+<form method="POST" action="{{ url_for('catalog') }}">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.price.label(class="form-label") }}
+        {{ form.price(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.stock.label(class="form-label") }}
+        {{ form.stock(class="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-success">{{ form.submit() }}</button>
+</form>
+{% endblock %}

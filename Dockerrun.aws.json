@@ -1,0 +1,13 @@
+{
+    "AWSEBDockerrunVersion": "2",
+    "Image": {
+        "Name": "250738637992.dkr.ecr.eu-central-1.amazonaws.com/x23266856_m_mpharmacy:latest",
+        "Update": "true"
+    },
+    "Ports": [
+        {
+            "ContainerPort": "5000"
+        }
+    ]
+}
+

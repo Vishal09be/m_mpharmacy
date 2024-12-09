@@ -1,0 +1,54 @@
+name: CI/CD Pipeline for Flask Application
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow when changes are pushed to the main branch
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest  # Run the job on an Ubuntu-based runner
+
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Docker Buildx (for multi-platform builds if needed)
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    # Step 3: Log in to Docker Hub
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}  # Docker Hub username from secrets
+        password: ${{ secrets.DOCKER_PASSWORD }}  # Docker Hub password or PAT from secrets
+
+    # Step 4: Build Docker image with no cache
+    - name: Build Docker image
+      run: |
+        docker build --no-cache -t vishal09be/m_mpharmacy:latest .
+
+    # Step 5: Push the Docker image to Docker Hub
+    - name: Push Docker image to Docker Hub
+      run: |
+        docker push vishal09be/m_mpharmacy:latest
+
+    # Step 6: Deploy to EC2 instance using SSH
+    - name: Deploy to EC2 instance
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.EC2_IP }}  # EC2 public IP address from secrets
+        username: ${{ secrets.EC2_USER }}  # EC2 username (typically 'ec2-user' for Amazon Linux)
+        key: ${{ secrets.EC2_PRIVATE_KEY }}  # EC2 private key (stored as GitHub Secret)
+        script: |
+          # Stop and remove the old container if it exists
+          docker stop m_mpharmacy || true
+          docker rm m_mpharmacy || true
+
+          # Pull the latest Docker image from Docker Hub
+          docker pull vishal09be/m_mpharmacy:latest
+
+          # Run the new container on port 5000
+          docker run -d --name m_mpharmacy -p 5000:5000 vishal09be/m_mpharmacy:latest
