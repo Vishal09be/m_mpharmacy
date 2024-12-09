@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
-
+#import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import (
@@ -15,6 +15,7 @@ from forms import RegistrationForm, LoginForm, ProductForm, UpdateProductForm
 
 # Initialize Flask app and extensions
 app = Flask(__name__)
+#app.config['SECRET_KEY'] = os.environ["SECRET_KEY"]
 app.config["SECRET_KEY"] = "your_secret_key"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///pharmacy.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
