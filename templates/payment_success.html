@@ -1,18 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Success</title>
-    <!-- Link to the external CSS file -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <!-- Payment Success Container -->
-    <div class="success-container">
-        <h1>Payment Successful!</h1>
-        <p>Your payment has been processed successfully. Thank you for your purchase!</p>
-        <a href="/" class="btn">Return to Home</a>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="success-container">
+    <h1>Payment Successful!</h1>
+    <p>Your payment has been processed successfully. Thank you for your purchase!</p>
+    <a href="/" class="btn">Return to Home</a>
+</div>
+{% endblock %}
