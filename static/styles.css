@@ -2,6 +2,9 @@
 body {
     font-family: 'Roboto', sans-serif;
     background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
 }
 
 .navbar {
@@ -16,6 +19,8 @@ body {
 
 .btn {
     border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 .alert {
